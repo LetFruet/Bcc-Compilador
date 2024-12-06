@@ -1,0 +1,152 @@
+#Options
+GenerateScanner = true
+GenerateParser = true
+Language = Java
+ScannerName = Lexico
+ParserName = Sintatico
+SemanticName = Semantico
+ScannerCaseSensitive = true
+ScannerTable = Compact
+Input = Stream
+Parser = LL
+#RegularDefinitions
+
+ min: [a-z]
+ mai: [A-Z]
+ prefixo: i | f | b | s
+ digito: [0-9]
+#Tokens
+// Alana, LetÃ­cia e Caio
+
+palavraR: {min} ({min} | {mai})*
+
+// especificar palavras reservadas na linguagem
+// main end if elif else false true read write writeln repeat until while
+
+pr_main = palavraR: "main"
+pr_end = palavraR: "end"
+pr_if = palavraR: "if"
+pr_elif = palavraR: "elif"
+pr_else = palavraR: "else"
+pr_false = palavraR: "false"
+pr_true = palavraR: "true"
+pr_read = palavraR: "read"
+pr_write = palavraR: "write"
+pr_writeln = palavraR: "writeln"
+pr_repeat = palavraR: "repeat"
+pr_until = palavraR: "until"
+pr_while = palavraR: "while"
+
+
+identificador:! {prefixo} "_" ({mai} | {min} {mai}?) (({min} | {digito})+ {mai}?)*
+
+int: 0 | [1-9] {digito}*
+
+float: (0 | [1-9] {digito}*) "," (0 | ({digito}* [1-9])*)
+
+string: \" ([^\n\"%]* (%x)*)* \"
+
+: [\n\t\s\r]
+
+:! >@\n [^@]* \n@<
+
+// especificar simbolos especiais
+//  && || ! == != < > + - * / , ; = ( )
+"&&"
+"||"
+"!"
+"=="
+"!="
+"<"
+">"
+"+"
+"-"
+"*"
+"/"
+","
+";"
+"="
+"("
+")"
+#NonTerminals
+<forma_geral>
+<lista_instrucoes>
+<lista_instrucoes1>
+<instrucao>
+<instrucao1>
+<lista_identificadores>
+<lista_identificadores1>
+<comando>
+<comando1>
+<cmd_atribuicao>
+<cmd_read>
+<lista_entrada>
+<lista_entrada1>
+<constante_string>
+<cmd_saida>
+<lista_expressoes>
+<lista_expressoes1>
+<cmd_select>
+<cmd_elif> 
+<cmd_else> 
+<lista_comandos>
+<lista_comandos1>
+<cmd_repeat> 
+<cmd_repeat1>
+<expressao>
+<expressao1>
+<elemento>
+<relacional>
+<relacional1>
+<operador_relacional>
+<aritmetica>
+<aritmetica1>
+<termo>
+<termo1>
+<fator>
+
+#Grammar
+<forma_geral> ::= #100 pr_main <lista_instrucoes> pr_end #101 ;
+<lista_instrucoes> ::= <instrucao> ";" <lista_instrucoes1>  ;
+<lista_instrucoes1> ::= î | <lista_instrucoes> ;
+
+<instrucao> ::= <lista_identificadores> <instrucao1> |  <comando1> ;
+<instrucao1>  ::= #102 î | "=" <expressao> #103 ;
+
+<lista_identificadores> ::= identificador #104 <lista_identificadores1> ;
+<lista_identificadores1> ::= î | "," <lista_identificadores> ;
+
+<comando> ::= <cmd_atribuicao> | <cmd_read> | <cmd_saida> | <cmd_select> | <cmd_repeat> ;
+<comando1> ::= <cmd_read> | <cmd_saida> | <cmd_select> | <cmd_repeat> ;
+
+<cmd_atribuicao> ::= <lista_identificadores> "=" <expressao> #103;
+
+<cmd_read> ::= pr_read "(" <lista_entrada> ")" ;
+<lista_entrada> ::= <constante_string> identificador #105 <lista_entrada1> ;
+<lista_entrada1> ::= î | "," <lista_entrada> ;
+<constante_string> ::= î | string #106 "," ;
+
+<cmd_saida> ::= pr_write "(" <lista_expressoes> ")" | pr_writeln "(" <lista_expressoes> ")" #107 ;
+<lista_expressoes> ::= <expressao> #108 <lista_expressoes1>  ;
+<lista_expressoes1> ::= î | "," <lista_expressoes> ;
+
+<cmd_select> ::= pr_if <expressao> #109 <lista_comandos> <cmd_elif> #110 <cmd_else> #111 pr_end ;
+<cmd_elif> ::= î | #110 pr_elif <expressao> #112 <lista_comandos> <cmd_elif> ;  
+<cmd_else> ::= î | pr_else <lista_comandos> ;
+<lista_comandos> ::= <comando> ";" <lista_comandos1> ;
+<lista_comandos1> ::= î | <lista_comandos> ;
+
+<cmd_repeat> ::= #113 pr_repeat <lista_comandos> <cmd_repeat1>;
+<cmd_repeat1> ::= pr_while <expressao> #114 | pr_until <expressao> #115 ;
+
+<expressao> ::= <elemento> <expressao1> ;
+<expressao1> ::= î | "&&" <elemento> #116 <expressao1> | "||" <elemento> #117 <expressao1> ;
+<elemento> ::= <relacional> | pr_true #118 | pr_false #119 | "!" <elemento> #120;
+<relacional> ::= <aritmetica> <relacional1> ;
+<relacional1> ::= î | <operador_relacional> #121 <aritmetica> #122;
+<operador_relacional>::= "==" | "!=" | "<" | ">" ;
+<aritmetica> ::= <termo> <aritmetica1> ;
+<aritmetica1> ::= î | "+" <termo> #123 <aritmetica1> | "-" <termo> #124 <aritmetica1> ;
+<termo> ::= <fator> <termo1> ;
+<termo1> ::= î | "*" <fator> #125 <termo1> | "/" <fator> #126 <termo1> ;
+<fator> ::= identificador #127 | int #128 | float #129 | string #130 | "(" <expressao> ")" | "+" <fator> | "-" <fator> #131 ;
